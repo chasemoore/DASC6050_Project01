@@ -9,11 +9,59 @@
 using namespace cv;
 using namespace std;
 
+// Checks cv::String vector for valid image extension
+bool Check_ext(const cv::String filename)
+{
+    size_t pos = filename.rfind('.');
+    if (pos == string::npos)
+        // path to file does not contain an image
+    
+        return false;
+
+    string ext = filename.substr(pos+1);
+
+    if (ext == "jpg" || ext == "jpeg" || ext == "gif" || ext == "png")
+        // path to file contains an image
+        return true;
+
+    return false;
+}
+
+// this readImages is based on an DFS, we're going to try BFS
+
+void readImages(String path, vector<cv::String> &fn, vector<cv::Mat> &images){
+    // current path = ^^^
+    glob(path , fn, false);
+    size_t count = fn.size();
+    for (size_t i = 0; i < count; i++)
+	{
+        if (Check_ext(fn[i]) == true){
+            images.push_back(imread(fn[i]));
+        }
+        else {
+            fn.pop_back(); //fix later
+            // modify filename path
+            // current path . append /subdirectory ***
+            // newPAth = ksd;fjaks
+            // old_path
+            readImages(path, fn, images);
+        }
+		
+	}
+    
+}
 
 int main()
 {
-	//change this to your image path
-	String path = "C:/Users/willi/Desktop/Grad/DASC6050/images/*.png";  
+    String path = "/Users/ericthomas/Desktop/dasc_project01/goya/*.jpg";
+
+	/* change this to your image path (0 = false, 1 = true)  
+    // next three lines test filename extensions
+    cv::String testPath = "/Users/ericthomas/Desktop/dasc_project01/Goya/goat.jpg";
+    std::cout << Check_ext(testPath);
+    std::cout << "test";
+    return 0;
+     end test */
 
 	vector<cv::String> fn;
 	glob(path , fn, false);
@@ -30,11 +78,15 @@ int main()
 		images.push_back(imread(fn[i]));
 	}
 	
-	namedWindow("Display window", WINDOW_AUTOSIZE);
+	namedWindow("Image Browser", WINDOW_AUTOSIZE);
 
-	//Display the image in the directory
-	imshow("Display window", images[0]);
-	waitKey(0);
+	//Display the images in the directory one per key press
+    for (int i = 0; i < images.size(); i++){
+        imshow("Image Browser", images[i]);
+	    waitKey(0);
+    }
+	// imshow("Image Browser", images[0]);
+	// waitKey(0);
 
     //TODO: Display multiple images in a display window.
 	return 0;
