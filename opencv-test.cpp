@@ -1,7 +1,10 @@
 // opencv-test.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 
 #include <opencv2/core/core.hpp>
+#Chase Moore
+#Eric Thomas
+#Todd Vlk
+
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
@@ -9,102 +12,57 @@
 using namespace cv;
 using namespace std;
 
-
-int main()
+int main(int argc, char** argv)
 {
-	//change this to your image path
-	String path = "C:/Users/willi/Desktop/Grad/DASC6050/images/*.png";  
 
-	vector<cv::String> fn;
-	glob(path , fn, false);
-	vector<Mat> images;
+    string path = "C:/Users/willi/Desktop/Grad/Fall2020/DASC6050/images";
 
-	//number of png files in images folder
-	size_t count = fn.size(); 
+    vector<cv::String> fn;
+    glob(path, fn, false);
+    
 
-	//make sure we're getting these images
-	//printf("%lu", count);
+    //number of png files in images folder
+    size_t count = fn.size();
 
-	for (size_t i = 0; i < count; i++)
-	{
-		images.push_back(imread(fn[i]));
-	}
-	
-	namedWindow("Display window", WINDOW_AUTOSIZE);
+    //hold the resized images 
+    vector<Mat> resizedImages(count);
 
-	//Display the image in the directory
-	imshow("Display window", images[0]);
-	waitKey(0);
+        //import numpy as np
+        //import cv2 as cv
+        //img = cv.imread('messi5.jpg', 0)
+        //rows, cols = img.shape
+        //M = np.float32([[1, 0, 100], [0, 1, 50]] )
+        //dst = cv.warpAffine(img, M, (cols, rows))
+        //cv.imshow('img', dst)
+        //cv.waitKey(0)
+        //cv.destroyAllWindows()
 
-    //TODO: Display multiple images in a display window.
-	return 0;
+    //argument 2 and 3
+    size_t x = 7;
+    size_t y = 7;
+
+    //make all images the same size
+    for (size_t i = 0; i < count; i++)
+    {
+        //([[1,0,100], [0,1,50]])
+        //warpAffine(imread(fn[i], 0),,imread(fn[i]).shape);
+        resize(imread(fn[i]), resizedImages[i], Size(x*100, y*100), 0, 0, INTER_AREA);
+    }
+
+    //scales the browser based off the images
+    namedWindow("Image Browser", WINDOW_AUTOSIZE);
+
+    //Display the images in the directory one per key press
+    for (int i = 0; i < resizedImages.size(); i++) {
+        imshow("Image Browser", resizedImages[i]);
+        waitKey(0);
+    }
+
+    return 0;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
 
 
 /**Graveyard
-
-//Mat image = Mat::zeros(300, 600, CV_8UC3);
-	//circle(image, Point(250, 150), 100, Scalar(0, 255, 128), -100);
-	//circle(image, Point(350, 150), 100, Scalar(255, 255, 255), -100);
-	//imshow("Display Window", image);
-	//waitKey(0);
-
-
-
-cv::Mat makeCanvas(std::vector<cv::Mat>& vecMat, int windowHeight, int nRows) {
-    int N = vecMat.size();
-    nRows = nRows > N ? N : nRows;
-    int edgeThickness = 10;
-    int imagesPerRow = ceil(double(N) / nRows);
-    int resizeHeight = floor(2.0 * ((floor(double(windowHeight - edgeThickness) / nRows)) / 2.0)) - edgeThickness;
-    int maxRowLength = 0;
-
-    std::vector<int> resizeWidth;
-    for (int i = 0; i < N;) {
-        int thisRowLen = 0;
-        for (int k = 0; k < imagesPerRow; k++) {
-            double aspectRatio = double(vecMat[i].cols) / vecMat[i].rows;
-            int temp = int(ceil(resizeHeight * aspectRatio));
-            resizeWidth.push_back(temp);
-            thisRowLen += temp;
-            if (++i == N) break;
-        }
-        if ((thisRowLen + edgeThickness * (imagesPerRow + 1)) > maxRowLength) {
-            maxRowLength = thisRowLen + edgeThickness * (imagesPerRow + 1);
-        }
-    }
-    int windowWidth = maxRowLength;
-    cv::Mat canvasImage(windowHeight, windowWidth, CV_8UC3, Scalar(0, 0, 0));
-
-    for (int k = 0, i = 0; i < nRows; i++) {
-        int y = i * resizeHeight + (i + 1) * edgeThickness;
-        int x_end = edgeThickness;
-        for (int j = 0; j < imagesPerRow && k < N; k++, j++) {
-            int x = x_end;
-            cv::Rect roi(x, y, resizeWidth[k], resizeHeight);
-            cv::Size s = canvasImage(roi).size();
-            // change the number of channels to three
-            cv::Mat target_ROI(s, CV_8UC3);
-            if (vecMat[k].channels() != canvasImage.channels()) {
-                if (vecMat[k].channels() == 1) {
-                    cv::cvtColor(vecMat[k], target_ROI, CV_GRAY2BGR);
-                }
-            }
-            else {
-                vecMat[k].copyTo(target_ROI);
-            }
-            cv::resize(target_ROI, target_ROI, s);
-            if (target_ROI.type() != canvasImage.type()) {
-                target_ROI.convertTo(target_ROI, canvasImage.type());
-            }
-            target_ROI.copyTo(canvasImage(roi));
-            x_end += resizeWidth[k] + edgeThickness;
-        }
-    }
-    return canvasImage;
-}
-
 */
+
