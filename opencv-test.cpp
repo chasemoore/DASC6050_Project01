@@ -1,16 +1,81 @@
 // opencv-test.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <queue>
+#include <dirent.h>
+#include <sys/types.h>
+
 
 using namespace cv;
 using namespace std;
 
+bool Check_ext(string filename);
+
+// Function to list files obtained from a directory path.
+void listFiles(const char *path)
+{
+    char str1[] = ".";
+    char str2[] = ". .";
+    char fileName[255];
+    vector<cv::String> fnames; // vector to return to calling function.
+    struct dirent *dp;
+    DIR *dir = opendir(path);
+
+    // Unable to open directory stream
+    if (!dir) 
+        return;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (dp->d_type == DT_DIR){
+            // Convert directory name (char arr)
+            // to string for string concatentation
+            // and string comparison
+            strncpy(fileName, dp->d_name, 254);
+            string str(fileName);
+            string oneDotDir = ".";
+            string twoDotDir = "..";
+            if(str != oneDotDir && str != twoDotDir){
+                // Do NOT add to stack of paths
+                std::cout << "Good directory! ";
+                std::cout << str << "\n";
+            }
+            else {
+                std::cout << "Bad Directory! ";
+                std::cout << str << "\n";
+            }
+            
+        }
+        else {
+            // dir read was not a directory
+            // handle as a file
+            // check extension
+            // Convert file name (char arr)
+            // to string for string concatentation
+            // and string comparison
+            strncpy(fileName, dp->d_name, 254);
+            string str(fileName);
+            if(Check_ext(str)){
+                std::cout << "Valid Image! " << str << "\n";
+            }
+            else {
+                std::cout << "Garbage: " << str << "\n";
+            }
+        }
+        // printf("%s\n", dp->d_name);
+    }
+
+    // Close directory stream
+    closedir(dir);
+    return; // returned vector.
+}
+
 // Checks cv::String vector for valid image extension
-bool Check_ext(const cv::String filename)
+bool Check_ext(string filename)
 {
     size_t pos = filename.rfind('.');
     if (pos == string::npos)
@@ -27,68 +92,90 @@ bool Check_ext(const cv::String filename)
     return false;
 }
 
-// this readImages is based on an DFS, we're going to try BFS
+// this readImages is based on an BFS, we're going to try BFS
 
-void readImages(String path, vector<cv::String> &fn, vector<cv::Mat> &images){
-    // current path = ^^^
-    glob(path , fn, false);
-    size_t count = fn.size();
-    for (size_t i = 0; i < count; i++)
-	{
-        if (Check_ext(fn[i]) == true){
-            images.push_back(imread(fn[i]));
+void readImages(cv::String path, vector<cv::Mat> &images){
+    // Create stack for path names
+    vector<cv::String> fnames;
+    glob(path , fnames, false);
+    // Do while stack not empty
+    
+    while(fnames.size() > 1){
+        cv::String temp_fn;
+        // Grab path name from stack and store in temp
+        temp_fn = fnames.back();
+        std::cout << temp_fn << "\n"; 
+        // Remove path name from stack
+        fnames.pop_back();
+        // Check to see if pathname folder or image
+        if (Check_ext(temp_fn)){
+            std::cout << "Hello\n";
+            images.push_back(imread(temp_fn));
         }
         else {
-            fn.pop_back(); //fix later
-            // modify filename path
-            // current path . append /subdirectory ***
-            // newPAth = ksd;fjaks
-            // old_path
-            readImages(path, fn, images);
+            std::cout << temp_fn << "\n";
+            // waitKey(0);
+           // TODO grab substring after last '/' character in filename var temp.
+           // append to end of current path as new path var.
+            cv::String folder_name;
+            // Grab index of first char in the folder name.
+            // Append folder name to current path.
+            folder_name = path.substr(path.find_last_of("/")+1);
+            cv::String temp_path;
+            temp_path = path.append(folder_name);
+            std::cout << temp_path;
+            readImages(temp_path, images);
+
         }
-		
-	}
-    
+    }
+    return;
 }
 
 int main()
 {
-    String path = "/Users/ericthomas/Desktop/dasc_project01/goya/*.jpg";
 
-	/* change this to your image path (0 = false, 1 = true)  
-    // next three lines test filename extensions
-    cv::String testPath = "/Users/ericthomas/Desktop/dasc_project01/Goya/goat.jpg";
-    std::cout << Check_ext(testPath);
-    std::cout << "test";
+    // Store hard-coded root directory path into the path variable.
+    cv::String path = "/Users/ericthomas/Desktop/dasc_project01/goya/";
+
+    /*
+    char path[100];
+
+    // Input path from user
+    printf("Enter path to list files: ");
+    scanf("%s", path);
+
+    listFiles(path);
+
     return 0;
-     end test */
+    */
 
+    
 	vector<cv::String> fn;
+    // Grab all file names as directory paths from the root folder.
 	glob(path , fn, false);
+    
+
+    // Declare vector of image files.
 	vector<Mat> images;
 
-	//number of png files in images folder
-	size_t count = fn.size(); 
+    /* Output test to determine how many file pathnames were read.
+     std::cout << fn.size() << "\n";
+    for (int i = 0; i <= fn.size(); i++){
+        std::cout << fn[i] << "\n";
+    }
+    */
 
-	//make sure we're getting these images
-	//printf("%lu", count);
-
-	for (size_t i = 0; i < count; i++)
-	{
-		images.push_back(imread(fn[i]));
-	}
-	
+    // Call readImages function to read filenames from each directory.
+    readImages(path, images);
+    
 	namedWindow("Image Browser", WINDOW_AUTOSIZE);
 
-	//Display the images in the directory one per key press
+	// Display the images in the directory one per key press
     for (int i = 0; i < images.size(); i++){
         imshow("Image Browser", images[i]);
 	    waitKey(0);
     }
-	// imshow("Image Browser", images[0]);
-	// waitKey(0);
-
-    //TODO: Display multiple images in a display window.
+	
 	return 0;
 }
 
