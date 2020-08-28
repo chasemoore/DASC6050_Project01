@@ -1,6 +1,4 @@
 // opencv-test.cpp : This file contains the 'main' function. Program execution begins and ends there.
-
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -70,8 +68,8 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
         while (tempR > canvasImage.rows || tempC > canvasImage.cols)
         {
           
-            tempR = tempR * 0.9f;
-            tempC = tempC * 0.9f;
+            tempR = tempR * 0.99f;
+            tempC = tempC * 0.99f;
         }
         Rect roi(0, 0, tempC, tempR);
         Size s = canvasImage(roi).size();
@@ -84,7 +82,7 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
     }
     else
     {
-        Rect roi(0, 0, scaleImage(img, 1).cols, scaleImage(img, 1).rows);
+        Rect roi(0, 0, img.cols, img.rows);
         Size s = canvasImage(roi).size();
         Mat target_ROI(s, CV_8UC3);
         img.copyTo(target_ROI);
@@ -97,6 +95,7 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
 }
 
 //scales the image based upon the dimensions of src image.
+//This function isn't really needed
 Mat scaleImage(Mat src, size_t scale)
 {
     Point2f srcTri[3];
