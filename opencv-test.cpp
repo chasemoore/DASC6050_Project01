@@ -53,19 +53,45 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
         }
     }
     int windowWidth = width;
-    cout << "windowWidth -> " << windowWidth << endl;
+    //cout << "windowWidth -> " << windowWidth << endl;
 
     cv::Mat canvasImage(windowHeight, windowWidth, CV_8UC3, Scalar(0, 0, 0));
     cout << canvasImage.rows << endl << canvasImage.cols << endl;
+    cout << img.rows << endl << img.cols << endl;
+    int imgRows = img.rows;
+    int imgCols = img.cols;
+    int tempR = img.rows;
+    int tempC = img.cols;
 
-            Rect roi(0,0, scaleImage( img, 1).cols, scaleImage(img, 1).rows);
-            Size s = canvasImage(roi).size();
-            Mat target_ROI(s, CV_8UC3);
- 
-            img.copyTo(target_ROI);
-            cv::resize(target_ROI, target_ROI, s);
-            target_ROI.convertTo(target_ROI, canvasImage.type());
-            target_ROI.copyTo(canvasImage(roi));
+    //check if image can fit canvas
+    if (imgRows > canvasImage.rows || imgCols > canvasImage.cols)
+    {
+        //keep scaling the rows and col down to fit the canvas 
+        while (tempR > canvasImage.rows || tempC > canvasImage.cols)
+        {
+          
+            tempR = tempR * 0.9f;
+            tempC = tempC * 0.9f;
+        }
+        Rect roi(0, 0, tempC, tempR);
+        Size s = canvasImage(roi).size();
+        Mat target_ROI(s, CV_8UC3);
+
+        img.copyTo(target_ROI);
+        cv::resize(target_ROI, target_ROI, s);
+        target_ROI.convertTo(target_ROI, canvasImage.type());
+        target_ROI.copyTo(canvasImage(roi));
+    }
+    else
+    {
+        Rect roi(0, 0, scaleImage(img, 1).cols, scaleImage(img, 1).rows);
+        Size s = canvasImage(roi).size();
+        Mat target_ROI(s, CV_8UC3);
+        img.copyTo(target_ROI);
+        cv::resize(target_ROI, target_ROI, s);
+        target_ROI.convertTo(target_ROI, canvasImage.type());
+        target_ROI.copyTo(canvasImage(roi));
+    }
        
     return canvasImage;
 }
