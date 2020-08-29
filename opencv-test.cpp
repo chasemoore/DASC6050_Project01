@@ -1,11 +1,16 @@
-// opencv-test.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//Chase Moore
+//Todd VLK
+//Eric Thomas
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <queue>
 #include <opencv2/dirent.h>
+//#include dirent.h
 #include <sys/types.h>
+#include <conio.h>
 
 
 using namespace cv;
@@ -14,7 +19,8 @@ using namespace std;
 Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows);
 Mat scaleImage(Mat src, size_t scale);
 bool Check_ext(string filename);
-void listFiles(const char* path, vector<cv::Mat>& images);
+void listFiles(const char* path, vector<cv::Mat>& images, vector<String>& fn, vector<String>& fp);
+Mat metadata(Mat& img, string fname, string fpath);
 
 
 // string path = "/Users/ericthomas/Desktop/dasc_project01/goya/";
@@ -60,6 +66,7 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
     int imgCols = img.cols;
     int tempR = img.rows;
     int tempC = img.cols;
+    float scaler = 0.99f;
 
     //check if image can fit canvas
     if (imgRows > canvasImage.rows || imgCols > canvasImage.cols)
@@ -68,8 +75,8 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
         while (tempR > canvasImage.rows || tempC > canvasImage.cols)
         {
           
-            tempR = tempR * 0.99f;
-            tempC = tempC * 0.99f;
+            tempR = tempR * scaler; //scaling down the rows
+            tempC = tempC * scaler; //scaling down the cols
         }
         Rect roi(0, 0, tempC, tempR);
         Size s = canvasImage(roi).size();
@@ -92,6 +99,22 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
     }
        
     return canvasImage;
+}
+
+Mat metadata(Mat& img, string fname, string fpath)
+{
+    string rows = to_string(img.rows);
+    string cols = to_string(img.cols);
+    string aspectRatio = (string)rows + " X " + cols;
+    string size = to_string(img.dims);
+    putText(img, aspectRatio, Point2f(10, 30), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 91, 3), 1);
+    putText(img,size, Point2f(10, 70), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 91, 3), 1);
+    putText(img, fname, Point2f(10, 110), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 91, 3), 1);
+    putText(img, fpath, Point2f(10, 150), FONT_HERSHEY_COMPLEX, .4, Scalar(73, 0, 91, 3), 1);
+    cout << fname << endl << fpath << endl << aspectRatio << endl << size;
+    return img;
+
+
 }
 
 //scales the image based upon the dimensions of src image.
@@ -118,7 +141,7 @@ Mat scaleImage(Mat src, size_t scale)
 }
 
 // Function to list files obtained from a directory path.
-void listFiles(const char* path, vector<cv::Mat>& images)
+void listFiles(const char* path, vector<cv::Mat>& images, vector<String>& fn, vector<String>& fp)
 {
     
     char fileName[255];
@@ -153,7 +176,7 @@ void listFiles(const char* path, vector<cv::Mat>& images)
                 string temp_fn = fullPath + "/" + str;
                 char newPath[255];
                 strcpy(newPath, temp_fn.c_str());
-                listFiles(newPath, images);
+                listFiles(newPath, images,fn,fp);
             }
         }
         else {
@@ -165,6 +188,8 @@ void listFiles(const char* path, vector<cv::Mat>& images)
             // Check to see if the file has the proper extension for image media.
             if (Check_ext(str)) {
                 string temp_fn = fullPath + "/" + str;
+                fp.push_back(temp_fn);
+                fn.push_back(str);
                 cout << temp_fn << endl;
                 // File passes the check and is added to the image vector.
                 images.push_back(imread(temp_fn));
@@ -200,6 +225,8 @@ int main(int argc, char* argv[])
     // Variable declaration for the root directory path and image vector.
     char path[100];
     vector<Mat> images;
+    vector<String> fileNames;
+    vector<String> filePaths;
     string sr, sc;
     int r, c;
 
@@ -214,12 +241,50 @@ int main(int argc, char* argv[])
         strcpy(path, argv[1]);
         // listFiles takes a directory path as a char array as well as a vector
         // of type cv::Mat and returns the vector full of images from directories.
-        listFiles(path, images);
+        listFiles(path, images, fileNames, filePaths);
 
-        for (int i = 0; i < images.size(); i++) {
-            imshow("Image Browser", images[i]);
-            waitKey(0);
+        char key_press;
+        int ascii_value;
+        int index = 0;
+      
+        while (true)
+        {
+            //Make sure we're actually displaying an image.
+            if (images[index].cols > 0 && images[index].rows > 0)
+            {
+                int key = waitKey();
+                cout << key << endl;
+                Mat metaImg = metadata(images[index], fileNames[index], filePaths[index]);
+                imshow("Browser", metadata(images[index], fileNames[index], filePaths[index]));
+                if (key == 27) // For ESC
+                {
+                    cout << "exiting program" << endl;
+                    break;
+                }
+                else if (key == 110) {
+                    if (index != images.size() - 1) {
+                        index++;
+                        imshow("Browser", metadata(images[index], fileNames[index], filePaths[index]));
+                        cout << "N index -> " << index << endl;
+                       
+                    }
+                }
+                else if (key == 112) {
+                    if(index > 0)
+                    {
+                        index--;
+                        imshow("Browser", metadata(images[index], fileNames[index], filePaths[index]));
+                        cout << "P index -> " << index << endl;
+                       
+                    }
+                          
+                }
+                //waitKey();
+                //cout << waitKey(0) << endl;
+                //waitKey(0);
+            }
         }
+
         return 0;
     }
     if (argc == 4) {
@@ -230,7 +295,7 @@ int main(int argc, char* argv[])
         // listFiles takes a directory path as a char array as well as a vector
         // of type cv::Mat and returns the vector full of images from directories.
         cout << "listingFiles" << endl;
-        listFiles(path, images);
+        listFiles(path, images,fileNames,filePaths);
 
         // Delete this for loop once the proper while loop above is filled out.
         for (size_t i = 0; i < images.size(); i++) {
@@ -239,8 +304,8 @@ int main(int argc, char* argv[])
             if (images[i].cols > 0 && images[i].rows > 0)
             {
                 vector<Mat> temp;
-                temp.push_back(images[i]);
-                imshow("Image Browser", makeCanvas(temp, c, r));
+                temp.push_back(metadata(images[i], fileNames[i], filePaths[i]));
+                imshow("Browser", makeCanvas(temp, c, r));
                 waitKey(0);
             }
         }
@@ -252,7 +317,7 @@ int main(int argc, char* argv[])
 
 
     //while (true) {
-    //    imshow("Image Browser", images[index]);
+        //imshow("Image Browser", images[index]);
         // Fill out while loop to dispay image, read user input, determine where
         // p, n or exit was pressed.
     //}
