@@ -8,7 +8,7 @@
 #include <iostream>
 #include <queue>
 #include <opencv2/dirent.h>
-//#include dirent.h
+#include <dirent.h>
 #include <sys/types.h>
 #include <conio.h>
 
@@ -107,10 +107,10 @@ Mat metadata(Mat& img, string fname, string fpath)
     string cols = to_string(img.cols);
     string aspectRatio = (string)rows + " X " + cols;
     string size = to_string(img.dims);
-    putText(img, aspectRatio, Point2f(10, 30), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 91, 3), 1);
-    putText(img,size, Point2f(10, 70), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 91, 3), 1);
-    putText(img, fname, Point2f(10, 110), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 91, 3), 1);
-    putText(img, fpath, Point2f(10, 150), FONT_HERSHEY_COMPLEX, .4, Scalar(73, 0, 91, 3), 1);
+    putText(img, aspectRatio, Point2f(10, 30), FONT_HERSHEY_COMPLEX, 0.75, Scalar(0, 0, 255, 3), 1);
+    putText(img,size, Point2f(10, 70), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 255, 3), 1);
+    putText(img, fname, Point2f(10, 110), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 255, 3), 1);
+    putText(img, fpath, Point2f(10, 150), FONT_HERSHEY_COMPLEX, .4, Scalar(73, 0, 255, 3), 1);
     cout << fname << endl << fpath << endl << aspectRatio << endl << size;
     return img;
 
@@ -243,10 +243,8 @@ int main(int argc, char* argv[])
         // of type cv::Mat and returns the vector full of images from directories.
         listFiles(path, images, fileNames, filePaths);
 
-        char key_press;
-        int ascii_value;
         int index = 0;
-      
+
         while (true)
         {
             //Make sure we're actually displaying an image.
@@ -255,7 +253,7 @@ int main(int argc, char* argv[])
                 int key = waitKey();
                 cout << key << endl;
                 Mat metaImg = metadata(images[index], fileNames[index], filePaths[index]);
-                imshow("Browser", metadata(images[index], fileNames[index], filePaths[index]));
+                imshow("Browser", metaImg);
                 if (key == 27) // For ESC
                 {
                     cout << "exiting program" << endl;
@@ -264,24 +262,22 @@ int main(int argc, char* argv[])
                 else if (key == 110) {
                     if (index != images.size() - 1) {
                         index++;
-                        imshow("Browser", metadata(images[index], fileNames[index], filePaths[index]));
+                        imshow("Browser", metaImg);
                         cout << "N index -> " << index << endl;
-                       
+
                     }
                 }
                 else if (key == 112) {
-                    if(index > 0)
+                    if (index > 0)
                     {
                         index--;
-                        imshow("Browser", metadata(images[index], fileNames[index], filePaths[index]));
+                        imshow("Browser", metaImg);
                         cout << "P index -> " << index << endl;
-                       
+
                     }
-                          
+
                 }
-                //waitKey();
-                //cout << waitKey(0) << endl;
-                //waitKey(0);
+                
             }
         }
 
@@ -291,35 +287,48 @@ int main(int argc, char* argv[])
         strcpy(path, argv[1]);
         r = stoi(argv[2]);
         c = stoi(argv[3]);
+        int index = 0;
 
         // listFiles takes a directory path as a char array as well as a vector
         // of type cv::Mat and returns the vector full of images from directories.
         cout << "listingFiles" << endl;
-        listFiles(path, images,fileNames,filePaths);
-
-        // Delete this for loop once the proper while loop above is filled out.
-        for (size_t i = 0; i < images.size(); i++) {
-
-            //  Validate it's an image
-            if (images[i].cols > 0 && images[i].rows > 0)
+        listFiles(path, images, fileNames, filePaths);
+        while (true)
+        {
+            //Make sure we're actually displaying an image.
+            if (images[index].cols > 0 && images[index].rows > 0)
             {
+                int key = waitKey();
+                cout << key << endl;
+                Mat metaImg = metadata(images[index], fileNames[index], filePaths[index]);
                 vector<Mat> temp;
-                temp.push_back(metadata(images[i], fileNames[i], filePaths[i]));
+                temp.push_back(metadata(metaImg, fileNames[index], filePaths[index]));
                 imshow("Browser", makeCanvas(temp, c, r));
-                waitKey(0);
+                if (key == 27) // For ESC
+                {
+                    cout << "exiting program" << endl;
+                    break;
+                }
+                else if (key == 110) {
+                    if (index != images.size() - 1) {
+                        index++;
+                        imshow("Browser", makeCanvas(temp, c, r));
+                        cout << "N index -> " << index << endl;
+                    }
+                }
+                else if (key == 112) {
+                    if (index > 0)
+                    {
+                        index--;
+                        imshow("Browser", makeCanvas(temp, c, r));
+                        cout << "P index -> " << index << endl;
+
+                    }
+                }
             }
+
         }
+        return 0;
     }
 
-    // Display the images in the image vector one at a time, per key press.
-    //namedWindow("Image Browser", WINDOW_AUTOSIZE);
-    //int index = 0;
-
-
-    //while (true) {
-        //imshow("Image Browser", images[index]);
-        // Fill out while loop to dispay image, read user input, determine where
-        // p, n or exit was pressed.
-    //}
-    return 0;
 }
