@@ -217,6 +217,7 @@ Mat makeCanvas(vector <Mat>& vecMat, int windowHeight, int nRows) {
     return canvasImage;
 }
 
+// metadata displays the meta data per image 
 Mat metadata(Mat& img, string fname, string fpath)
 {
     string rows = to_string(img.rows);
@@ -226,7 +227,7 @@ Mat metadata(Mat& img, string fname, string fpath)
     putText(img, aspectRatio, Point2f(10, 30), FONT_HERSHEY_COMPLEX, 0.75, Scalar(0, 0, 255, 3), 1);
     putText(img, "File Size: " + size, Point2f(10, 70), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 255, 3), 1);
     putText(img, fname, Point2f(10, 110), FONT_HERSHEY_COMPLEX, 0.75, Scalar(73, 0, 255, 3), 1);
-    putText(img, "Press a button to ESC.", Point2f(10, 150), FONT_HERSHEY_COMPLEX, .4, Scalar(73, 0, 255, 3), 1);
+    putText(img, "File Path: " + fpath, Point2f(10, 150), FONT_HERSHEY_COMPLEX, .4, Scalar(73, 0, 255, 3), 1);
     return img;
 }
 
